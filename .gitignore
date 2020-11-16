@@ -1,2 +1,15 @@
-*.class
-*.log
+target/
+dist/*
+
+project/target
+project/boot
+
+/target
+
+#metals
+project/metals.sbt
+.metals/
+.bloop/
+
+# VSCODE
+.vscode/
