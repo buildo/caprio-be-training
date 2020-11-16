@@ -1,3 +1,3 @@
-object Main extends App {
+object Game extends App {
     println("Wanna play?")
 }
