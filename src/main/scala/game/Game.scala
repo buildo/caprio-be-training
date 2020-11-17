@@ -1,23 +1,45 @@
 import scala.util.Random
 import command.Command
-import command.PlayAgainCommand
-import command.ExitCommand
-import command.Play._
-import command.Play
+import command.Command._
+import command.Move
+import command.Move._
+import error.Error
+import error.InvalidInput
 
 object Game extends App {
 
-  def provideCPUMove(): PlayCommand = Random.shuffle(Play.moves).head
+  def isExitCommandDetect(value: String): Boolean = value == "Q"
 
-  def parsePlayerMove(value: String): Either[Error, Command] = value match {
-    case "0" => Right(Rock);
-    case "1" => Right(Paper);
-    case "2" => Right(Scissor);
-    case "Q" => Right(ExitCommand)
+  def provideCPUMove(): Move = Random.shuffle(Move.moves).head
+
+  def parsePlayerMove(value: String): Either[Error, Move] = value match {
+    case "0" => Right(Rock)
+    case "1" => Right(Paper)
+    case "2" => Right(Scissor)
     case _ => Left(InvalidInput)
   }
 
-  def evaluateWinner(userPlay: PlayCommand, cpuPlay: PlayCommand): String =
+  def handleInvalidInput(error: Error) = {
+    println(error.getFormattedErrorMsg())
+    PlayAgain
+  }
+
+  def handleUserMove(userMove: Either[Error, Move]): Command.PlayAgain.type =
+    userMove.fold(
+      handleInvalidInput,
+      (userMove: Move) => {
+
+        val cpuMove = provideCPUMove()
+        println(s"[User] ${userMove.toString()} <-> ${cpuMove.toString()} [CPU]")
+
+        val matchResult = evaluateWinner(userMove, cpuMove)
+        println(s"Math result  : ${matchResult}\n\n")
+
+        PlayAgain
+      }
+    )
+
+  def evaluateWinner(userPlay: Move, cpuPlay: Move): String =
     (userPlay, cpuPlay) match {
       case (Rock, Scissor) | (Scissor, Paper) | (Paper, Rock) => "YOU WIN"
       case (Rock, Paper) | (Scissor, Rock) | (Paper, Scissor) => "YOU LOSE"
@@ -39,26 +61,13 @@ object Game extends App {
 
     val userInput = scala.io.StdIn.readLine()
 
-    val maybePlayAgain = parsePlayerMove(userInput)
-      .fold(
-        invalidCommad => {
-          println(invalidCommad.getFormattedErrorMsg());
-          Some(PlayAgainCommand);
-        },
-        cmd =>
-          cmd match {
-            case userMove: PlayCommand => {
-              val cpuMove = provideCPUMove()
-              println(s"[User] ${userMove.toString()} <-> ${cpuMove.toString()} [CPU]")
-
-              val matchResult = evaluateWinner(userMove, cpuMove)
-              println(s"Math result  : ${matchResult}\n\n")
-
-              Some(PlayAgainCommand)
-            }
-            case _ => None
-          }
+    val maybePlayAgain = Either
+      .cond(
+        !isExitCommandDetect(userInput),
+        parsePlayerMove(userInput),
+        Exit
       )
+      .map(handleUserMove)
 
     maybePlayAgain.map(userCmd => play())
   }

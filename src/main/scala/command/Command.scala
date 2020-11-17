@@ -1,15 +1,16 @@
 package command
 
 sealed trait Command
+object Command{
+  case object Exit extends Command
+  case object PlayAgain extends Command
+}
 
-case object ExitCommand extends Command
-case object PlayAgainCommand extends Command
-
-object Play {
-  sealed trait PlayCommand extends Command
-  case object Rock extends PlayCommand
-  case object Paper extends PlayCommand
-  case object Scissor extends PlayCommand
+sealed trait Move
+object Move {
+  case object Rock extends Move
+  case object Paper extends Move
+  case object Scissor extends Move
 
   val moves = Seq(Rock, Paper, Scissor)
 }
