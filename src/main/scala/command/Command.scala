@@ -1,7 +1,5 @@
 package command
 
-import error.Printable
-
 sealed trait Command
 object Command {
   final object Exit extends Command
