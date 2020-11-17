@@ -5,8 +5,15 @@ import command.Move
 import command.Move._
 import error.Error
 import error.InvalidInput
+import error.Printable
 
 object Game extends App {
+
+  implicit val printError = new Printable[Error] {
+    def providePrintableMsg(err: Error): String = s"--> [${err.message}] !!!"
+  }
+
+  def printMessage[T](e: T)(implicit d: Printable[T]): Unit = println(d.providePrintableMsg(e))
 
   def isExitCommandDetect(value: String): Boolean = value == "Q"
 
@@ -20,7 +27,7 @@ object Game extends App {
   }
 
   def handleInvalidInput(error: Error) = {
-    println(error.getFormattedErrorMsg())
+    printMessage(error);
     PlayAgain
   }
 
@@ -69,10 +76,12 @@ object Game extends App {
       )
       .map(handleUserMove)
 
-    maybePlayAgain.map(userCmd => play())
+    maybePlayAgain.fold(
+      exit => println("--- EXIT ---"),
+      playAgain => play()
+    )
   }
 
   println("Start with playing to Rock Paper Scissor")
   play()
-  println("--- EXIT ---")
 }

@@ -1,7 +1,13 @@
 package error
 
-sealed abstract case class Error(errorMessage: String) {
-  def getFormattedErrorMsg(): String = s"--> [${this.errorMessage}] !!!"
+sealed trait Error {
+  def message: String
 }
 
-object InvalidInput extends Error("Invalid Input")
+final object InvalidInput extends Error {
+  override def message: String = "Invalid Input"
+}
+
+trait Printable[T] {
+  def providePrintableMsg(t: T): String
+}
