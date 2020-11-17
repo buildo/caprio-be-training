@@ -14,7 +14,7 @@ object Game extends App {
     case "1" => Right(Paper);
     case "2" => Right(Scissor);
     case "Q" => Right(ExitCommand)
-    case _ => Left(InvaliInput)
+    case _ => Left(InvalidInput)
   }
 
   def evaluateWinner(userPlay: PlayCommand, cpuPlay: PlayCommand): String =
@@ -37,7 +37,7 @@ object Game extends App {
       """
     )
 
-    val userInput: String = scala.io.StdIn.readLine()
+    val userInput = scala.io.StdIn.readLine()
 
     val maybePlayAgain = parsePlayerMove(userInput)
       .fold(
