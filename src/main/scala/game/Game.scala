@@ -4,7 +4,7 @@ import command.Command._
 import command.Move
 import command.Move._
 import error.Error
-import error.InvalidInput
+import error.NotAllowedInput
 import error.Printable
 
 object Game extends App {
@@ -23,7 +23,7 @@ object Game extends App {
     case "0" => Right(Rock)
     case "1" => Right(Paper)
     case "2" => Right(Scissor)
-    case _ => Left(InvalidInput)
+    case _ => Left(NotAllowedInput)
   }
 
   def handleInvalidInput(error: Error) = {
