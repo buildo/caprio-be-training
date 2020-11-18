@@ -26,7 +26,7 @@ object Game extends App {
         value
       )
 
-  def provideCPUMove(): Move = Random.shuffle(Move.moves).head
+  def provideCPUMove(): Move = Random.shuffle(Move.values).head
 
   def parsePlayerMove(value: String): Either[Error, Move] = value match {
     case "0" => Right(Rock)
