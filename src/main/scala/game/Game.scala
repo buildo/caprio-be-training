@@ -37,10 +37,10 @@ object Game extends App {
       (userMove: Move) => {
 
         val cpuMove = provideCPUMove()
-        println(s"[User] ${userMove.toString()} <-> ${cpuMove.toString()} [CPU]")
+        println(s"[User] ${userMove} <-> ${cpuMove} [CPU]")
 
         val matchResult = evaluateWinner(userMove, cpuMove)
-        println(s"Math result  : ${matchResult}\n\n")
+        println(s"Match result  : ${matchResult}\n\n")
 
         PlayAgain
       }
@@ -78,7 +78,7 @@ object Game extends App {
 
     maybePlayAgain.fold(
       exit => println("--- EXIT ---"),
-      playAgain => play()
+      _ => play()
     )
   }
 
