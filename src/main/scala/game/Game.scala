@@ -32,13 +32,13 @@ object Game extends App {
     case "0" => Right(Rock)
     case "1" => Right(Paper)
     case "2" => Right(Scissor)
-    case _ => Left(InputParsingError) // maybe unreachable
+    case _ => Left(InputParsingError)
   }
 
   def handleError(error: Error): Either[Command.Exit.type, Command.PlayAgain.type] =
-    handleErrorsList(NonEmptyChain.one(error))
+    handleErrors(NonEmptyChain.one(error))
 
-  def handleErrorsList(errors: NonEmptyChain[Error]): Either[Command.Exit.type, Command.PlayAgain.type] = {
+  def handleErrors(errors: NonEmptyChain[Error]): Either[Command.Exit.type, Command.PlayAgain.type] = {
     errors.iterator.foreach(err => printMessage(err))
     Right(PlayAgain)
   }
@@ -51,7 +51,7 @@ object Game extends App {
             handleError,
             handleUserMove
           ),
-        exit => Left(Exit)
+        _ => Left(Exit)
       )
 
   def handleUserMove(userMove: Move): Either[Command.Exit.type, Command.PlayAgain.type] = {
@@ -89,7 +89,7 @@ object Game extends App {
     val maybePlayAgain: Either[Command.Exit.type, Command.PlayAgain.type] = InputValidator
       .validateInput(userInput)
       .fold(
-        handleErrorsList,
+        handleErrors,
         playGameTurn
       )
 
