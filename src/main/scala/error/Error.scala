@@ -12,6 +12,10 @@ object InvalidLengthInput extends Error {
   def message: String = "Length input wrong : should be 1 char"
 }
 
+object InputParsingError extends Error {
+  def message: String = "ERROR parsing input"
+}
+
 trait Printable[T] {
   def providePrintableMsg(t: T): String
 }

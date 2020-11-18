@@ -4,8 +4,11 @@ import command.Command._
 import command.Move
 import command.Move._
 import error.Error
-import error.NotAllowedInput
+import error.InputParsingError
 import error.Printable
+import validation.InputValidator
+import validation.UserInputData
+import cats.data._
 
 object Game extends App {
 
@@ -15,7 +18,13 @@ object Game extends App {
 
   def printMessage[T](e: T)(implicit d: Printable[T]): Unit = println(d.providePrintableMsg(e))
 
-  def isExitCommandDetect(value: String): Boolean = value == "Q"
+  def detectExitCommand(value: String): Either[String, Command.Exit.type] =
+    Either
+      .cond(
+        value == "Q",
+        Exit,
+        value
+      )
 
   def provideCPUMove(): Move = Random.shuffle(Move.moves).head
 
@@ -23,28 +32,37 @@ object Game extends App {
     case "0" => Right(Rock)
     case "1" => Right(Paper)
     case "2" => Right(Scissor)
-    case _ => Left(NotAllowedInput)
+    case _ => Left(InputParsingError) // maybe unreachable
   }
 
-  def handleInvalidInput(error: Error) = {
-    printMessage(error);
-    PlayAgain
+  def handleError(error: Error): Either[Command.Exit.type, Command.PlayAgain.type] =
+    handleErrorsList(NonEmptyChain.one(error))
+
+  def handleErrorsList(errors: NonEmptyChain[Error]): Either[Command.Exit.type, Command.PlayAgain.type] = {
+    errors.iterator.foreach(err => printMessage(err))
+    Right(PlayAgain)
   }
 
-  def handleUserMove(userMove: Either[Error, Move]): Command.PlayAgain.type =
-    userMove.fold(
-      handleInvalidInput,
-      (userMove: Move) => {
+  def playGameTurn(data: UserInputData): Either[Command.Exit.type, Command.PlayAgain.type] =
+    detectExitCommand(data.input)
+      .fold(
+        parsePlayerMove(_)
+          .fold(
+            handleError,
+            handleUserMove
+          ),
+        exit => Left(Exit)
+      )
 
-        val cpuMove = provideCPUMove()
-        println(s"[User] ${userMove} <-> ${cpuMove} [CPU]")
+  def handleUserMove(userMove: Move): Either[Command.Exit.type, Command.PlayAgain.type] = {
+    val cpuMove = provideCPUMove()
+    println(s"[User] ${userMove} <-> ${cpuMove} [CPU]")
 
-        val matchResult = evaluateWinner(userMove, cpuMove)
-        println(s"Match result  : ${matchResult}\n\n")
+    val matchResult = evaluateWinner(userMove, cpuMove)
+    println(s"Match result  : ${matchResult}\n\n")
 
-        PlayAgain
-      }
-    )
+    Right(PlayAgain)
+  }
 
   def evaluateWinner(userPlay: Move, cpuPlay: Move): String =
     (userPlay, cpuPlay) match {
@@ -68,13 +86,12 @@ object Game extends App {
 
     val userInput = scala.io.StdIn.readLine()
 
-    val maybePlayAgain = Either
-      .cond(
-        !isExitCommandDetect(userInput),
-        parsePlayerMove(userInput),
-        Exit
+    val maybePlayAgain: Either[Command.Exit.type, Command.PlayAgain.type] = InputValidator
+      .validateInput(userInput)
+      .fold(
+        handleErrorsList,
+        playGameTurn
       )
-      .map(handleUserMove)
 
     maybePlayAgain.fold(
       exit => println("--- EXIT ---"),
