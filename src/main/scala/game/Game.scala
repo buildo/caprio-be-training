@@ -49,8 +49,8 @@ object Game extends App {
   def evaluateWinner(userPlay: Move, cpuPlay: Move): String =
     (userPlay, cpuPlay) match {
       case (Rock, Scissor) | (Scissor, Paper) | (Paper, Rock) => "YOU WIN"
-      case (Rock, Paper) | (Scissor, Rock) | (Paper, Scissor) => "YOU LOSE"
-      case _ => "Match is DRAW!"
+      case (x, y) if x == y => "Match is DRAW!"
+      case _ => "YOU LOSE"
     }
 
   def play(): Unit = {
