@@ -28,6 +28,7 @@ lazy val root = (project in file("."))
       "com.typesafe.akka" %% "akka-actor-typed" % V.akkaVersion,
       "de.heikoseeberger" %% "akka-http-circe" % "1.18.0",
       "io.circe" %% "circe-core" % "0.8.0",
-      "io.circe" %% "circe-generic" % "0.8.0"
+      "io.circe" %% "circe-generic" % "0.8.0",
+      "ch.megard" %% "akka-http-cors" % "1.1.0"
     )
   )
