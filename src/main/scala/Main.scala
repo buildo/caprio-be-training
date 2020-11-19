@@ -3,6 +3,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 import scala.io.StdIn
 import scala.concurrent.ExecutionContext
 import api.request.PlayRequest
@@ -20,7 +21,8 @@ object Main extends App {
   implicit val system = ActorSystem(Behaviors.empty, "rps-game")
   implicit val executionContext = system.executionContext
 
-  val route =
+  val route = cors() {
+
     pathPrefix("rps") {
       path("play") {
         post {
@@ -34,6 +36,7 @@ object Main extends App {
         }
       }
     }
+  }
 
   val bindingFuture = Http().newServerAt("localhost", port).bind(route)
 
