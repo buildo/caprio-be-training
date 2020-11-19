@@ -1,15 +1,16 @@
 package command
 
+import io.buildo.enumero.annotations.indexedEnum
 import io.buildo.enumero.annotations.enum
 
-sealed trait Command
-object Command {
-  final object Exit extends Command
-  final object PlayAgain extends Command
+@enum trait Command {
+  Exit
+  PlayAgain
 }
 
-@enum trait Move {
-  object Rock
-  object Paper
-  object Scissor
+@indexedEnum trait Move {
+  type Index = String
+  object Rock { "0" }
+  object Paper { "1" }
+  object Scissor { "2" }
 }

@@ -9,8 +9,12 @@ import error.Printable
 import validation.InputValidator
 import validation.UserInputData
 import cats.data._
+import io.buildo.enumero._
 
 object Game extends App {
+
+  val moveSet = CaseEnumSerialization.apply[Move].values
+  val moveConverter = CaseEnumIndex.caseEnumIndex[Move]
 
   implicit val printError = new Printable[Error] {
     def providePrintableMsg(err: Error): String = s"--> [${err.message}] !!!"
@@ -18,32 +22,31 @@ object Game extends App {
 
   def printMessage[T](e: T)(implicit d: Printable[T]): Unit = println(d.providePrintableMsg(e))
 
-  def detectExitCommand(value: String): Either[String, Command.Exit.type] =
+  def detectExitCommand(value: String): Either[String, Exit.type] =
     Either
       .cond(
         value == "Q",
         Exit,
         value
       )
+  
+  def provideCPUMove(): Move = Random.shuffle(moveSet).head
 
-  def provideCPUMove(): Move = Random.shuffle(Move.values).head
+  def parsePlayerMove(value: String): Either[Error, Move] =
+    moveConverter
+      .caseFromIndex(value)
+      .map(move => Right(move))
+      .getOrElse(Left(InputParsingError))
 
-  def parsePlayerMove(value: String): Either[Error, Move] = value match {
-    case "0" => Right(Rock)
-    case "1" => Right(Paper)
-    case "2" => Right(Scissor)
-    case _ => Left(InputParsingError)
-  }
-
-  def handleError(error: Error): Either[Command.Exit.type, Command.PlayAgain.type] =
+  def handleError(error: Error): Either[Exit.type, PlayAgain.type] =
     handleErrors(NonEmptyChain.one(error))
 
-  def handleErrors(errors: NonEmptyChain[Error]): Either[Command.Exit.type, Command.PlayAgain.type] = {
+  def handleErrors(errors: NonEmptyChain[Error]): Either[Exit.type, PlayAgain.type] = {
     errors.iterator.foreach(err => printMessage(err))
     Right(PlayAgain)
   }
 
-  def playGameTurn(data: UserInputData): Either[Command.Exit.type, Command.PlayAgain.type] =
+  def playGameTurn(data: UserInputData): Either[Exit.type, PlayAgain.type] =
     detectExitCommand(data.input)
       .fold(
         parsePlayerMove(_)
@@ -54,7 +57,7 @@ object Game extends App {
         _ => Left(Exit)
       )
 
-  def handleUserMove(userMove: Move): Either[Command.Exit.type, Command.PlayAgain.type] = {
+  def handleUserMove(userMove: Move): Either[Exit.type, PlayAgain.type] = {
     val cpuMove = provideCPUMove()
     println(s"[User] ${userMove} <-> ${cpuMove} [CPU]")
 
@@ -86,7 +89,7 @@ object Game extends App {
 
     val userInput = scala.io.StdIn.readLine()
 
-    val maybePlayAgain: Either[Command.Exit.type, Command.PlayAgain.type] = InputValidator
+    val maybePlayAgain: Either[Exit.type, PlayAgain.type] = InputValidator
       .validateInput(userInput)
       .fold(
         handleErrors,
