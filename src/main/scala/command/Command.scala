@@ -8,9 +8,8 @@ import io.buildo.enumero.annotations.enum
   PlayAgain
 }
 
-@indexedEnum trait Move {
-  type Index = String
-  object Rock { "0" }
-  object Paper { "1" }
-  object Scissor { "2" }
+@enum trait Move {
+  object Rock 
+  object Paper
+  object Scissors
 }
