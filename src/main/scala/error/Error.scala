@@ -4,8 +4,16 @@ sealed trait Error {
   def message: String
 }
 
-object InvalidInput extends Error {
-  override def message: String = "Invalid Input"
+object NotAllowedInput extends Error {
+  def message: String = "Input not allowed : only 1,2,3,Q are allowed"
+}
+
+object InvalidLengthInput extends Error {
+  def message: String = "Length input wrong : should be 1 char"
+}
+
+object InputParsingError extends Error {
+  def message: String = "ERROR parsing input"
 }
 
 trait Printable[T] {
