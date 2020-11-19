@@ -12,98 +12,70 @@ import validation.InputValidator
 import validation.UserInputData
 import cats.data._
 import io.buildo.enumero._
+import model.GameResult
+import model.GameResult._
+import model.FinalResult
 
 object Game {
 
-  val moveSet = CaseEnumSerialization.apply[Move].values
-  val moveConverter = CaseEnumIndex.caseEnumIndex[Move]
+  private val moveSet = CaseEnumSerialization.apply[Move].values
+  private val moveConverter = CaseEnumIndex.caseEnumIndex[Move]
 
   implicit val printError = new Printable[Error] {
     def providePrintableMsg(err: Error): String = s"--> [${err.message}] !!!"
   }
 
-  def printMessage[T](e: T)(implicit d: Printable[T]): Unit = println(d.providePrintableMsg(e))
+  private def printMessage[T](e: T)(implicit d: Printable[T]): Unit = println(d.providePrintableMsg(e))
 
-  def detectExitCommand(value: String): Either[String, Exit.type] =
-    Either
-      .cond(
-        value == "Q",
-        Exit,
-        value
-      )
-  
-  def provideCPUMove(): Move = Random.shuffle(moveSet).head
+  private def provideCPUMove(): Move = Random.shuffle(moveSet).head
 
-  def parsePlayerMove(value: String): Either[Error, Move] =
+  private def parsePlayerMove(value: String): Either[Error, Move] =
     moveConverter
       .caseFromIndex(value)
       .map(move => Right(move))
       .getOrElse(Left(InputParsingError))
 
-  def handleError(error: Error): Either[Exit.type, PlayAgain.type] =
+  private def handleError(error: Error): Either[NonEmptyList[Error], FinalResult] =
     handleErrors(NonEmptyChain.one(error))
 
-  def handleErrors(errors: NonEmptyChain[Error]): Either[Exit.type, PlayAgain.type] = {
+  private def handleErrors(errors: NonEmptyChain[Error]): Either[NonEmptyList[Error], FinalResult] = {
     errors.iterator.foreach(err => printMessage(err))
-    Right(PlayAgain)
+    Left(errors.toNonEmptyList)
   }
 
-  def playGameTurn(data: UserInputData): Either[Exit.type, PlayAgain.type] =
-    detectExitCommand(data.input)
+  private def playGameTurn(data: UserInputData): Either[NonEmptyList[Error], FinalResult] =
+    parsePlayerMove(data.input)
       .fold(
-        parsePlayerMove(_)
-          .fold(
-            handleError,
-            handleUserMove
-          ),
-        _ => Left(Exit)
+        handleError,
+        handleUserMove
       )
 
-  def handleUserMove(userMove: Move): Either[Exit.type, PlayAgain.type] = {
+  private def handleUserMove(userMove: Move): Either[NonEmptyList[Error], FinalResult] = {
     val cpuMove = provideCPUMove()
-    println(s"[User] ${userMove} <-> ${cpuMove} [CPU]")
-
     val matchResult = evaluateWinner(userMove, cpuMove)
-    println(s"Match result  : ${matchResult}\n\n")
 
-    Right(PlayAgain)
+    Right(
+      new FinalResult(
+        userMove,
+        cpuMove,
+        matchResult
+      )
+    )
   }
 
-  def evaluateWinner(userPlay: Move, cpuPlay: Move): String =
+  private def evaluateWinner(userPlay: Move, cpuPlay: Move): GameResult =
     (userPlay, cpuPlay) match {
-      case (Rock, Scissor) | (Scissor, Paper) | (Paper, Rock) => "YOU WIN"
-      case (x, y) if x == y => "Match is DRAW!"
-      case _ => "YOU LOSE"
+      case (Rock, Scissor) | (Scissor, Paper) | (Paper, Rock) => Win
+      case (x, y) if x == y => Draw
+      case _ => Lose
     }
 
-  def play(): Unit = {
-    println(
-      """      
-      ==============================================================
-          digit char and choose for your move and press enter: 
-              0 - [ ROCK ]
-              1 - [ PAPER ] 
-              2 - [ SCISSOR ] 
-              digit Q to exit
-      ==============================================================
-      """
-    )
-
-    val userInput = scala.io.StdIn.readLine()
-
-    val maybePlayAgain: Either[Exit.type, PlayAgain.type] = InputValidator
+  def play(userInput: String): Either[NonEmptyList[Error], FinalResult] =
+    InputValidator
       .validateInput(userInput)
       .fold(
         handleErrors,
         playGameTurn
       )
 
-    maybePlayAgain.fold(
-      exit => println("--- EXIT ---"),
-      _ => play()
-    )
-  }
-
-  println("Start with playing to Rock Paper Scissor")
-  play()
 }
