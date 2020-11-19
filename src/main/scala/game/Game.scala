@@ -1,3 +1,5 @@
+package game
+
 import scala.util.Random
 import command.Command
 import command.Command._
@@ -11,7 +13,7 @@ import validation.UserInputData
 import cats.data._
 import io.buildo.enumero._
 
-object Game extends App {
+object Game {
 
   val moveSet = CaseEnumSerialization.apply[Move].values
   val moveConverter = CaseEnumIndex.caseEnumIndex[Move]
