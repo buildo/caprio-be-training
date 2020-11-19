@@ -2,4 +2,4 @@ package model
 
 import command.Move
 
-class FinalResult(userMove: Move, computerMove: Move, result: GameResult)
+class FinalResult(val userMove: Move, val computerMove: Move, val gameResult: GameResult)

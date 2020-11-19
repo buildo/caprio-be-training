@@ -5,10 +5,10 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / organization := "com.example"
 ThisBuild / organizationName := "example"
 
-val AkkaVersion = "2.6.10"
-val AkkaHttpVersion = "10.2.1"
 val V = new {
-  val enumero = "1.4.0"
+  val akkaVersion = "2.6.10"
+  val akkaHttpVersion = "10.2.1"
+  val enumero = "1.4.0"  
 }
 
 lazy val macroParadise = ("org.scalamacros" % "paradise" % "2.1.1").cross(CrossVersion.full)
@@ -23,8 +23,11 @@ lazy val root = (project in file("."))
       "org.typelevel" %% "cats-core" % "2.1.1",
       "io.buildo" %% "enumero" % V.enumero,
       "io.buildo" %% "enumero-circe-support" % V.enumero,
-      "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
-      "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
-      "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion
+      "com.typesafe.akka" %% "akka-http" % V.akkaHttpVersion,
+      "com.typesafe.akka" %% "akka-stream" % V.akkaVersion,
+      "com.typesafe.akka" %% "akka-actor-typed" % V.akkaVersion,
+      "de.heikoseeberger" %% "akka-http-circe" % "1.18.0",
+      "io.circe" %% "circe-core" % "0.8.0",
+      "io.circe" %% "circe-generic" % "0.8.0"
     )
   )

@@ -5,22 +5,39 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import scala.io.StdIn
 import scala.concurrent.ExecutionContext
+import api.request.PlayRequest
+import api.response.FinalResultResponse
+import game.Game._
+import game.Game
+
+import de.heikoseeberger.akkahttpcirce.ErrorAccumulatingCirceSupport._
+import io.buildo.enumero.circe._
+import io.circe.generic.auto._, io.circe.syntax._
 
 object Main extends App {
+  val port = 8080
 
   implicit val system = ActorSystem(Behaviors.empty, "rps-game")
   implicit val executionContext = system.executionContext
 
   val route =
-    path("start") {
-      get {
-        complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Start to Play Rock - Paper - Scissor</h1>"))
+    pathPrefix("rps") {
+      path("play") {
+        post {
+          entity(as[PlayRequest]) { request =>
+            {
+              val gameOutput = Game.play(request.userMove)
+              val apiResponse = FinalResultResponse(gameOutput.userMove, gameOutput.computerMove, gameOutput.gameResult)
+              complete(apiResponse.asJson)
+            }
+          }
+        }
       }
     }
 
-  val bindingFuture = Http().newServerAt("localhost", 8080).bind(route)
+  val bindingFuture = Http().newServerAt("localhost", port).bind(route)
 
-  println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
+  println(s"Server online at http://localhost:${port}/\nPress RETURN to stop...")
 
   StdIn.readLine()
   bindingFuture
