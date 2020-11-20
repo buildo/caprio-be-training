@@ -23,6 +23,7 @@ lazy val root = (project in file("."))
       "org.typelevel" %% "cats-core" % "2.1.1",
       "io.buildo" %% "enumero" % V.enumero,
       "io.buildo" %% "enumero-circe-support" % V.enumero,
+      "io.buildo" %% "wiro-http-server" % "0.8.1",
       "com.typesafe.akka" %% "akka-http" % V.akkaHttpVersion,
       "com.typesafe.akka" %% "akka-stream" % V.akkaVersion,
       "com.typesafe.akka" %% "akka-actor-typed" % V.akkaVersion,
