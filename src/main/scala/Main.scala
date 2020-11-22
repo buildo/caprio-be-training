@@ -16,8 +16,7 @@ import error.GameNotFoundError
 import error.Error
 import service.GameService
 import service.GameServiceImpl
-
-import akka.http.scaladsl.server.Directives._
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 
 object Main extends App with RouterDerivationModule {
   val config = Config("localhost", 8080)
@@ -44,12 +43,12 @@ object Main extends App with RouterDerivationModule {
   val gameService: GameService = new GameServiceImpl()
   val usersRouter = deriveRouter[GameApiController](new GameApiControllerImpl(gameService))
 
-  // TODO : try to add OPTION Path for handle CORS request with wiro
-  // val customRoutes = usersRouter.buildRoute ~ options { complete(StatusCodes.OK) }
+  val customRoutes = cors() { usersRouter.buildRoute }
 
   val rpcServer = new HttpRPCServer(
     config = config,
-    routers = List(usersRouter)
+    routers = List(usersRouter),
+    customRoute = customRoutes
   )
 
   println(s"Server online at http://localhost:${config.port}/\nPress RETURN to stop...")
