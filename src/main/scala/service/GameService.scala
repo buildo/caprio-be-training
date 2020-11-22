@@ -48,7 +48,7 @@ class GameServiceImpl extends GameService {
   }
 
   override def getLastGameResult(): Either[Error, FinalResult] = {
-    val allGamesResult = gameRepository.getAllgameResults()
+    val allGamesResult = gameRepository.getAllGameResultsSortedAsc()
 
     Either.cond(!allGamesResult.isEmpty, {
       val res = allGamesResult.last
