@@ -1,11 +1,9 @@
 package service
 
-import scala.util.Random
 import command.Command
 import command.Command._
 import command.Move
 import command.Move._
-import io.buildo.enumero._
 import model.GameResult
 import model.GameResult._
 import model.FinalResult
@@ -20,12 +18,9 @@ trait GameService {
   def getLastGameResult(): Either[Error, FinalResult]
 }
 
-class GameServiceImpl extends GameService {
-
-  val gameRepository: GameRepository = new GameRepositoryImpl()
-  val moveSerialization = CaseEnumSerialization.apply[Move]
-
-  private def provideCPUMove(): Move = Random.shuffle(moveSerialization.values).head
+class GameServiceImpl(
+  val gameRepository: GameRepository = new GameRepositoryImpl(), 
+  val cpuMoveStrategy: CpuMoveStrategy = new CpuMoveStrategyImpl()) extends GameService {
 
   private def evaluateWinner(userPlay: Move, cpuPlay: Move): GameResult =
     (userPlay, cpuPlay) match {
@@ -35,7 +30,7 @@ class GameServiceImpl extends GameService {
     }
 
   override def play(userMove: Move): FinalResult = {
-    val cpuMove = provideCPUMove()
+    val cpuMove = cpuMoveStrategy.provideCPUMove()
     val matchResult = evaluateWinner(userMove, cpuMove)
 
     gameRepository.insertGameResult(userMove, cpuMove, matchResult)
@@ -55,5 +50,4 @@ class GameServiceImpl extends GameService {
       new FinalResult(res.userMove, res.cpuMove, res.gameResult)
     }, GameNotFoundError)
   }
-
 }

@@ -30,6 +30,9 @@ lazy val root = (project in file("."))
       "de.heikoseeberger" %% "akka-http-circe" % "1.18.0",
       "io.circe" %% "circe-core" % "0.8.0",
       "io.circe" %% "circe-generic" % "0.8.0",
-      "ch.megard" %% "akka-http-cors" % "1.1.0"
+      "ch.megard" %% "akka-http-cors" % "1.1.0",
+      "org.scalatest" %% "scalatest" % "3.2.3" % "test",
+      "org.scalamock" %% "scalamock" % "4.4.0" % "test",
+      "org.scalactic" %% "scalactic" % "3.2.2"
     )
   )
