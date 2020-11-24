@@ -1,16 +1,16 @@
 package command
 
-sealed trait Command
-object Command {
-  final object Exit extends Command
-  final object PlayAgain extends Command
+import io.buildo.enumero.annotations.indexedEnum
+import io.buildo.enumero.annotations.enum
+
+@enum trait Command {
+  Exit
+  PlayAgain
 }
 
-sealed trait Move
-object Move {
-  final case object Rock extends Move
-  final case object Paper extends Move
-  final case object Scissor extends Move
-
-  val moves = Seq(Rock, Paper, Scissor)
+@indexedEnum trait Move {
+  type Index = String
+  object Rock { "0" }
+  object Paper { "1" }
+  object Scissor { "2" }
 }
