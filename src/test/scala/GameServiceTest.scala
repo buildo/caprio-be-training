@@ -1,62 +1,38 @@
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.funspec.AnyFunSpec
 import org.scalamock.scalatest.MockFactory
-import service.GameServiceImpl
-import service.GameService
+import service.{CpuMoveStrategy, GameEngine, GameService, GameServiceImpl}
 import persistance.GameRepository
 import command.Move
 import command.Move._
 import model.GameResult._
+import model.FinalResult
 import persistance.GameStatusEntity
-import service.CpuMoveStrategy
 
 class GameServiceTest extends AnyFunSpec with MockFactory with BeforeAndAfterEach {
 
   var mockgameRepository: GameRepository = _
   var mockCpuMoveStrategy: CpuMoveStrategy = _
+  var mockGameEngine: GameEngine = _
   var gameService: GameServiceImpl = _
 
   override def beforeEach() {
     mockgameRepository = mock[GameRepository]
     mockCpuMoveStrategy = mock[CpuMoveStrategy]
-    gameService = new GameServiceImpl(mockgameRepository, mockCpuMoveStrategy)
+    mockGameEngine = mock[GameEngine]
+    gameService = new GameServiceImpl(mockgameRepository, mockCpuMoveStrategy, mockGameEngine)
   }
 
-  describe("Test play") {
+  it("Test play behaviours") {
+    (mockCpuMoveStrategy.provideCPUMove _).expects().returns(Paper)
+    (mockGameEngine.evaluateWinner _).expects(Rock, Paper).returns(Lose)
+    (mockgameRepository.insertGameResult _).expects(Rock, Paper, Lose).once()
+    
+    val actualResult = gameService.play(Rock)
 
-    it("user lose") {
-
-      (mockCpuMoveStrategy.provideCPUMove _).expects().returns(Paper)
-      (mockgameRepository.insertGameResult _).expects(Rock, Paper, Lose).once()
-
-      val actualResult = gameService.play(Rock)
-
-      assert(actualResult.gameResult == Lose)
-      assert(actualResult.computerMove == Paper)
-      assert(actualResult.userMove == Rock)
-    }
-
-    it("user win") {
-      (mockCpuMoveStrategy.provideCPUMove _).expects().returns(Scissors)
-      (mockgameRepository.insertGameResult _).expects(Rock, Scissors, Win).once()
-
-      val actualResult = gameService.play(Rock)
-
-      assert(actualResult.gameResult == Win)
-      assert(actualResult.computerMove == Scissors)
-      assert(actualResult.userMove == Rock)
-    }
-
-    it("draw case") {
-      (mockCpuMoveStrategy.provideCPUMove _).expects().returns(Scissors)
-      (mockgameRepository.insertGameResult _).expects(Scissors, Scissors, Draw).once()
-
-      val actualResult = gameService.play(Scissors)
-
-      assert(actualResult.gameResult == Draw)
-      assert(actualResult.computerMove == Scissors)
-      assert(actualResult.userMove == Scissors)
-    }
+    assert(actualResult.userMove == Rock)
+    assert(actualResult.computerMove == Paper)
+    assert(actualResult.gameResult == Lose)
   }
 
   describe("Test getLastGameResult") {
@@ -66,14 +42,13 @@ class GameServiceTest extends AnyFunSpec with MockFactory with BeforeAndAfterEac
       (mockgameRepository.getAllGameResultsSortedAsc _).expects().returns(previousGameResult)
 
       val actualResult = gameService.getLastGameResult()
-      val expectedResult = previousGameResult.last
+      val expectedResult = new FinalResult(
+        previousGameResult.last.userMove,
+        previousGameResult.last.cpuMove,
+        previousGameResult.last.gameResult
+      )
 
-      assert(actualResult.isRight == true)
-      actualResult.map(res => {
-        assert(res.computerMove == expectedResult.cpuMove)
-        assert(res.userMove == expectedResult.userMove)
-        assert(res.gameResult == expectedResult.gameResult)
-      })
+      assert(actualResult === Right(expectedResult))    
     }
 
     it("should return error on empty result") {
@@ -84,8 +59,6 @@ class GameServiceTest extends AnyFunSpec with MockFactory with BeforeAndAfterEac
       assert(actualResult.isLeft == true)
     }
   }
-
-  private def cpuMoveWith(requiredMove: Move) = () => requiredMove
 
   private def buildDefaultListResult(): List[GameStatusEntity] =
     List(
