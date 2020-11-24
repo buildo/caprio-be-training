@@ -1,6 +1,8 @@
 import org.scalatest.OneInstancePerTest
 import org.scalatest.funspec.AnyFunSpec
 import org.scalamock.scalatest.MockFactory
+import org.scalacheck.Gen
+import io.buildo.enumero.CaseEnumSerialization
 import service.{CpuMoveStrategy, GameEngine, GameService, GameServiceImpl}
 import persistance.GameRepository
 import command.Move
@@ -8,12 +10,21 @@ import command.Move._
 import model.GameResult._
 import model.FinalResult
 import persistance.GameStatusEntity
+import model.GameResult
 
 class GameServiceTest extends AnyFunSpec with MockFactory with OneInstancePerTest {
 
   var mockgameRepository: GameRepository = mock[GameRepository]
   var mockCpuMoveStrategy: CpuMoveStrategy = mock[CpuMoveStrategy]
   var mockGameEngine: GameEngine = mock[GameEngine]
+
+  val gameResultsGen: Gen[GameStatusEntity] = for {
+    userMove <- Gen.oneOf(CaseEnumSerialization.apply[Move].values)
+    cpuMove <- Gen.oneOf(CaseEnumSerialization.apply[Move].values)
+    result <- Gen.oneOf(CaseEnumSerialization.apply[GameResult].values)
+  } yield GameStatusEntity(userMove, cpuMove, result)
+
+  val genGameResultsList = (num: Int) => Gen.containerOfN[List, GameStatusEntity](num, gameResultsGen)
 
   var gameService: GameServiceImpl = new GameServiceImpl(mockgameRepository, mockCpuMoveStrategy, mockGameEngine)
 
@@ -31,7 +42,7 @@ class GameServiceTest extends AnyFunSpec with MockFactory with OneInstancePerTes
 
   describe("Test getLastGameResult") {
     it("should return last insert entry") {
-      val previousGameResult = buildDefaultListResult()
+      val previousGameResult = genGameResultsList(10).sample.get
 
       (mockgameRepository.getAllGameResultsSortedAsc _).expects().returns(previousGameResult)
 
@@ -53,11 +64,4 @@ class GameServiceTest extends AnyFunSpec with MockFactory with OneInstancePerTes
       assert(actualResult.isLeft == true)
     }
   }
-
-  private def buildDefaultListResult(): List[GameStatusEntity] =
-    List(
-      new GameStatusEntity(Rock, Paper, Lose),
-      new GameStatusEntity(Rock, Rock, Draw),
-      new GameStatusEntity(Rock, Paper, Lose)
-    )
 }

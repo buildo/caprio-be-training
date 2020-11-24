@@ -8,7 +8,7 @@ ThisBuild / organizationName := "example"
 val V = new {
   val akkaVersion = "2.6.10"
   val akkaHttpVersion = "10.2.1"
-  val enumero = "1.4.0"  
+  val enumero = "1.4.0"
 }
 
 lazy val macroParadise = ("org.scalamacros" % "paradise" % "2.1.1").cross(CrossVersion.full)
@@ -33,6 +33,7 @@ lazy val root = (project in file("."))
       "ch.megard" %% "akka-http-cors" % "1.1.0",
       "org.scalatest" %% "scalatest" % "3.2.3" % "test",
       "org.scalamock" %% "scalamock" % "4.4.0" % "test",
+      "org.scalacheck" %% "scalacheck" % "1.14.3" % "test",
       "org.scalactic" %% "scalactic" % "3.2.2"
     )
   )
