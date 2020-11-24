@@ -27,10 +27,8 @@ class GameApiControllerImpl (gameService: GameService)(implicit ec: ExecutionCon
     Future {
       gameService
         .getLastGameResult()
-        .fold(
-          _ => Left(GameNotFoundError),
-          Right(_)
-        )
+        .left
+        .map(_ => GameNotFoundError)
     }
 
 }
