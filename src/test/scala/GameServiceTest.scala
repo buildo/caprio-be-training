@@ -1,4 +1,4 @@
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.OneInstancePerTest
 import org.scalatest.funspec.AnyFunSpec
 import org.scalamock.scalatest.MockFactory
 import service.{CpuMoveStrategy, GameEngine, GameService, GameServiceImpl}
@@ -9,25 +9,19 @@ import model.GameResult._
 import model.FinalResult
 import persistance.GameStatusEntity
 
-class GameServiceTest extends AnyFunSpec with MockFactory with BeforeAndAfterEach {
+class GameServiceTest extends AnyFunSpec with MockFactory with OneInstancePerTest {
 
-  var mockgameRepository: GameRepository = _
-  var mockCpuMoveStrategy: CpuMoveStrategy = _
-  var mockGameEngine: GameEngine = _
-  var gameService: GameServiceImpl = _
+  var mockgameRepository: GameRepository = mock[GameRepository]
+  var mockCpuMoveStrategy: CpuMoveStrategy = mock[CpuMoveStrategy]
+  var mockGameEngine: GameEngine = mock[GameEngine]
 
-  override def beforeEach() {
-    mockgameRepository = mock[GameRepository]
-    mockCpuMoveStrategy = mock[CpuMoveStrategy]
-    mockGameEngine = mock[GameEngine]
-    gameService = new GameServiceImpl(mockgameRepository, mockCpuMoveStrategy, mockGameEngine)
-  }
+  var gameService: GameServiceImpl = new GameServiceImpl(mockgameRepository, mockCpuMoveStrategy, mockGameEngine)
 
   it("Test play behaviours") {
     (mockCpuMoveStrategy.provideCPUMove _).expects().returns(Paper)
     (mockGameEngine.evaluateWinner _).expects(Rock, Paper).returns(Lose)
     (mockgameRepository.insertGameResult _).expects(Rock, Paper, Lose).once()
-    
+
     val actualResult = gameService.play(Rock)
 
     assert(actualResult.userMove == Rock)
@@ -48,7 +42,7 @@ class GameServiceTest extends AnyFunSpec with MockFactory with BeforeAndAfterEac
         previousGameResult.last.gameResult
       )
 
-      assert(actualResult === Right(expectedResult))    
+      assert(actualResult == Right(expectedResult))
     }
 
     it("should return error on empty result") {
