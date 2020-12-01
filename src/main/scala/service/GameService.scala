@@ -1,11 +1,7 @@
 package service
 
-import scala.util.Random
-import command.Command
-import command.Command._
 import command.Move
 import command.Move._
-import io.buildo.enumero._
 import model.GameResult
 import model.GameResult._
 import model.FinalResult
@@ -20,23 +16,11 @@ trait GameService {
   def getLastGameResult(): Either[Error, FinalResult]
 }
 
-class GameServiceImpl extends GameService {
-
-  val gameRepository: GameRepository = new GameRepositoryImpl()
-  val moveSerialization = CaseEnumSerialization.apply[Move]
-
-  private def provideCPUMove(): Move = Random.shuffle(moveSerialization.values).head
-
-  private def evaluateWinner(userPlay: Move, cpuPlay: Move): GameResult =
-    (userPlay, cpuPlay) match {
-      case (Rock, Scissors) | (Scissors, Paper) | (Paper, Rock) => Win
-      case (x, y) if x == y => Draw
-      case _ => Lose
-    }
+class GameServiceImpl(gameRepository: GameRepository, cpuMoveStrategy: CpuMoveStrategy, gameEngine: GameEngine) extends GameService {
 
   override def play(userMove: Move): FinalResult = {
-    val cpuMove = provideCPUMove()
-    val matchResult = evaluateWinner(userMove, cpuMove)
+    val cpuMove = cpuMoveStrategy.provideCPUMove()
+    val matchResult = gameEngine.evaluateWinner(userMove, cpuMove)
 
     gameRepository.insertGameResult(userMove, cpuMove, matchResult)
 
@@ -55,5 +39,4 @@ class GameServiceImpl extends GameService {
       new FinalResult(res.userMove, res.cpuMove, res.gameResult)
     }, GameNotFoundError)
   }
-
 }

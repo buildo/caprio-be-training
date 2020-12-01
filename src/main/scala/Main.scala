@@ -17,6 +17,8 @@ import error.Error
 import service.GameService
 import service.GameServiceImpl
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
+import service.{CpuMoveStrategyImpl, GameEngineImpl}
+import persistance.GameRepositoryImpl
 
 object Main extends App with RouterDerivationModule {
   val config = Config("localhost", 8080)
@@ -40,9 +42,13 @@ object Main extends App with RouterDerivationModule {
     }
   }
 
-  val gameService: GameService = new GameServiceImpl()
+  val gameService: GameService = new GameServiceImpl(
+    new GameRepositoryImpl,
+    new CpuMoveStrategyImpl(),
+    new GameEngineImpl()
+  )
+  
   val usersRouter = deriveRouter[GameApiController](new GameApiControllerImpl(gameService))
-
   val customRoutes = cors() { usersRouter.buildRoute }
 
   val rpcServer = new HttpRPCServer(

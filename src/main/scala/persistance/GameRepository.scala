@@ -6,7 +6,7 @@ import model.GameResult
 import scala.util.Random
 import scala.collection.immutable.ListMap
 
-class GameStatusEntity(val userMove: Move, val cpuMove: Move, val gameResult: GameResult)
+case class GameStatusEntity(val userMove: Move, val cpuMove: Move, val gameResult: GameResult)
 
 trait GameRepository {
   def insertGameResult(userMove: Move, cpuMove: Move, gameResult: GameResult)
