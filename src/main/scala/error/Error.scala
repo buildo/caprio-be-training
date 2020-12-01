@@ -1,7 +1,15 @@
 package error
 
-sealed trait Error {
+sealed trait Error extends Throwable{
   def message: String
+}
+
+object GameNotFoundError extends Error {
+  def message: String = "Game result not found"
+}
+
+object GenericError extends Error {
+  def message: String = "Something was wrong please contact system admin !"
 }
 
 object NotAllowedInput extends Error {
